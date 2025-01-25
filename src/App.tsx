@@ -7,6 +7,10 @@ import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import CreateRFP from "@/pages/CreateRFP";
 import RFPList from "@/pages/RFPList";
+import VendorDashboard from "@/pages/VendorDashboard";
+import VendorRFPList from "@/pages/VendorRFPList";
+import SubmitBid from "@/pages/SubmitBid";
+import SubmittedBids from "@/pages/SubmittedBids";
 
 function App() {
   return (
@@ -19,6 +23,10 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/rfp/create" element={<CreateRFP />} />
           <Route path="/rfp" element={<RFPList />} />
+          <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+          <Route path="/vendor/rfps" element={<VendorRFPList />} />
+          <Route path="/vendor/bid/new" element={<SubmitBid />} />
+          <Route path="/vendor/bids" element={<SubmittedBids />} />
         </Routes>
         <Toaster />
       </Router>
