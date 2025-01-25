@@ -4,6 +4,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import Dashboard from "@/pages/Dashboard";
+import CreateRFP from "@/pages/CreateRFP";
+import RFPList from "@/pages/RFPList";
 
 function App() {
   return (
@@ -13,6 +16,9 @@ function App() {
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/rfp/create" element={<CreateRFP />} />
+          <Route path="/rfp" element={<RFPList />} />
         </Routes>
         <Toaster />
       </Router>
