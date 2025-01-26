@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, FileText, CheckCircle, Clock } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { PlusCircle, FileText, CheckCircle, Clock, Plus, List } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
@@ -12,9 +13,45 @@ const Dashboard = () => {
     completedProjects: 8,
   };
 
+  // Mock categories data
+  const categories = [
+    { id: 1, name: "IT Infrastructure" },
+    { id: 2, name: "Network Equipment" },
+    { id: 3, name: "Software Licenses" },
+    { id: 4, name: "Consulting Services" },
+  ];
+
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">Procurement Officer Dashboard</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Procurement Officer Dashboard</h1>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2">
+              <List className="h-4 w-4" />
+              Manage Categories
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>RFP Categories</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6">
+              <div className="space-y-4">
+                {categories.map((category) => (
+                  <div key={category.id} className="flex items-center justify-between p-2 bg-accent/10 rounded-md">
+                    <span>{category.name}</span>
+                  </div>
+                ))}
+                <Button className="w-full flex items-center gap-2" variant="outline">
+                  <Plus className="h-4 w-4" />
+                  Add New Category
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
       
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -70,6 +107,7 @@ const Dashboard = () => {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-4">Title</th>
+                  <th className="text-left py-3 px-4">Category</th>
                   <th className="text-left py-3 px-4">Status</th>
                   <th className="text-left py-3 px-4">Deadline</th>
                   <th className="text-left py-3 px-4">Actions</th>
@@ -80,18 +118,21 @@ const Dashboard = () => {
                   {
                     id: 1,
                     title: "Network Infrastructure Upgrade",
+                    category: "IT Infrastructure",
                     status: "Active",
                     deadline: "2024-04-15",
                   },
                   {
                     id: 2,
                     title: "School Connectivity Project",
+                    category: "Network Equipment",
                     status: "Closed",
                     deadline: "2024-03-30",
                   },
                 ].map((rfp) => (
                   <tr key={rfp.id} className="border-b">
                     <td className="py-3 px-4">{rfp.title}</td>
+                    <td className="py-3 px-4">{rfp.category}</td>
                     <td className="py-3 px-4">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
