@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { PlusCircle, FileText, CheckCircle, Clock, Plus, List } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -12,13 +12,25 @@ import type { Category, CreateCategoryRequest } from "@/types/category";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>([
+    {
+      id: "1",
+      name: "IT Infrastructure",
+      description: "Network and hardware equipment",
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "2",
+      name: "Network Equipment",
+      description: "Switches, routers, and network devices",
+      createdAt: new Date().toISOString(),
+    },
+  ]);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState<CreateCategoryRequest>({
     name: "",
     description: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
 
   const summaryData = {
     totalRFPs: 24,
@@ -26,26 +38,7 @@ const Dashboard = () => {
     completedProjects: 8,
   };
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/rfp/categories');
-      const result = await response.json();
-      setCategories(result.data);
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load categories",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleAddCategory = async () => {
+  const handleAddCategory = () => {
     if (!newCategory.name.trim()) {
       toast({
         title: "Error",
@@ -55,39 +48,23 @@ const Dashboard = () => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const response = await fetch('/rfp/categories/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newCategory),
-      });
+    const mockNewCategory: Category = {
+      id: crypto.randomUUID(),
+      name: newCategory.name.trim(),
+      description: newCategory.description?.trim(),
+      createdAt: new Date().toISOString(),
+    };
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create category');
-      }
+    setCategories([...categories, mockNewCategory]);
+    setNewCategory({ name: "", description: "" });
+    setIsAddingCategory(false);
+    
+    toast({
+      title: "Success",
+      description: "Category created successfully",
+    });
 
-      await fetchCategories();
-      setNewCategory({ name: "", description: "" });
-      setIsAddingCategory(false);
-      
-      toast({
-        title: "Success",
-        description: "Category added successfully",
-      });
-    } catch (error) {
-      console.error('Failed to create category:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create category",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    console.log("New category created:", mockNewCategory);
   };
 
   return (
@@ -108,13 +85,11 @@ const Dashboard = () => {
             <div className="mt-6">
               <div className="space-y-4">
                 {categories.map((category) => (
-                  <div key={category.id} className="flex items-center justify-between p-2 bg-accent/10 rounded-md">
-                    <div className="space-y-1">
-                      <span className="font-medium">{category.name}</span>
-                      {category.description && (
-                        <p className="text-sm text-muted-foreground">{category.description}</p>
-                      )}
-                    </div>
+                  <div key={category.id} className="flex flex-col p-3 bg-accent/10 rounded-md">
+                    <span className="font-medium">{category.name}</span>
+                    {category.description && (
+                      <span className="text-sm text-muted-foreground">{category.description}</span>
+                    )}
                   </div>
                 ))}
                 {isAddingCategory ? (
@@ -134,9 +109,8 @@ const Dashboard = () => {
                       <Button 
                         className="flex-1" 
                         onClick={handleAddCategory}
-                        disabled={isLoading}
                       >
-                        {isLoading ? "Saving..." : "Save"}
+                        Save
                       </Button>
                       <Button 
                         variant="outline" 
@@ -145,7 +119,6 @@ const Dashboard = () => {
                           setIsAddingCategory(false);
                           setNewCategory({ name: "", description: "" });
                         }}
-                        disabled={isLoading}
                       >
                         Cancel
                       </Button>
@@ -166,7 +139,7 @@ const Dashboard = () => {
           </SheetContent>
         </Sheet>
       </div>
-      
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
