@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Wand2 } from "lucide-react";
+import axios from "axios";
 
 interface RFPFormData {
   title: string;
@@ -14,6 +15,8 @@ interface RFPFormData {
   budget: string;
   deadline: string;
   evaluationCriteria: string;
+  startDate: string;
+  endDate: string;
 }
 
 const CreateRFP = () => {
@@ -21,15 +24,30 @@ const CreateRFP = () => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const { register, handleSubmit, setValue } = useForm<RFPFormData>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSubmit = (data: RFPFormData) => {
-    // Mock API call
-    console.log("Submitting RFP:", data);
-    toast({
-      title: "RFP Created",
-      description: "Your RFP has been successfully published.",
-    });
-    navigate("/dashboard");
+  const onSubmit = async (data: RFPFormData) => {
+    setIsSubmitting(true);
+    try {
+      const response = await axios.post("http://localhost:3000/rfp/create", data, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Use the stored token
+        },
+      });
+      toast({
+        title: "RFP Created",
+        description: "Your RFP has been successfully published.",
+      });
+      navigate("/dashboard");
+    } catch (error) {
+      toast({
+        title: "RFP Creation Failed",
+        description: "Please check your input and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const generateDraft = async () => {
@@ -47,83 +65,71 @@ const CreateRFP = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New RFP</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Title</label>
-              <Input {...register("title")} placeholder="Enter RFP title" required />
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+          Create a New RFP
+        </h2>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                RFP Title
+              </label>
+              <Input id="title" {...register("title")} required />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Description</label>
-              <div className="flex gap-2">
-                <Textarea
-                  {...register("description")}
-                  placeholder="Enter RFP description"
-                  className="min-h-[100px]"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={generateDraft}
-                  disabled={isGenerating}
-                >
-                  <Wand2 className="h-4 w-4 mr-2" />
-                  {isGenerating ? "Generating..." : "Generate Draft"}
-                </Button>
-              </div>
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                Description
+              </label>
+              <Textarea id="description" {...register("description")} required />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Budget (USD)</label>
-                <Input
-                  {...register("budget")}
-                  type="number"
-                  placeholder="Enter budget"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Deadline</label>
-                <Input
-                  {...register("deadline")}
-                  type="date"
-                  required
-                />
-              </div>
+            <div>
+              <label htmlFor="budget" className="block text-sm font-medium text-gray-700">
+                Budget
+              </label>
+              <Input id="budget" type="number" {...register("budget")} required />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Evaluation Criteria</label>
-              <Textarea
-                {...register("evaluationCriteria")}
-                placeholder="Enter evaluation criteria"
-                className="min-h-[100px]"
-                required
-              />
+            <div>
+              <label htmlFor="deadline" className="block text-sm font-medium text-gray-700">
+                Submission Deadline
+              </label>
+              <Input id="deadline" type="datetime-local" {...register("deadline")} required />
             </div>
 
-            <div className="flex justify-end gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/dashboard")}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Publish RFP</Button>
+            <div>
+              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+                Start Date
+              </label>
+              <Input id="startDate" type="datetime-local" {...register("startDate")} required />
             </div>
+
+            <div>
+              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+                End Date
+              </label>
+              <Input id="endDate" type="datetime-local" {...register("endDate")} required />
+            </div>
+
+            <div>
+              <label htmlFor="evaluationCriteria" className="block text-sm font-medium text-gray-700">
+                Evaluation Criteria
+              </label>
+              <Textarea id="evaluationCriteria" {...register("evaluationCriteria")} />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Creating..." : "Create RFP"}
+            </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

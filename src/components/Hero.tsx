@@ -14,13 +14,14 @@ export const Hero = () => {
             Revolutionizing public sector procurement with transparency, efficiency, and fairness.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" variant="secondary" className="group">
-              Explore Features
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
             <Link to="/login">
               <Button size="lg" variant="outline" className="bg-white/10 hover:bg-white/20">
                 Login as Vendor
+              </Button>
+            </Link>
+            <Link to="/dashboard">
+              <Button size="lg" variant="outline" className="bg-white/10 hover:bg-white/20">
+                Login as Procurement Officer
               </Button>
             </Link>
           </div>
