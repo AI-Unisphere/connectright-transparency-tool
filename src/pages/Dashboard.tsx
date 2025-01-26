@@ -3,9 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { PlusCircle, FileText, CheckCircle, Clock, Plus, List } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import type { Category, CreateCategoryRequest } from "@/types/category";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState<CreateCategoryRequest>({
+    name: "",
+    description: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   const summaryData = {
     totalRFPs: 24,
@@ -13,13 +26,69 @@ const Dashboard = () => {
     completedProjects: 8,
   };
 
-  // Mock categories data
-  const categories = [
-    { id: 1, name: "IT Infrastructure" },
-    { id: 2, name: "Network Equipment" },
-    { id: 3, name: "Software Licenses" },
-    { id: 4, name: "Consulting Services" },
-  ];
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/rfp/categories');
+      const result = await response.json();
+      setCategories(result.data);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load categories",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategory.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Category name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/rfp/categories/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newCategory),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create category');
+      }
+
+      await fetchCategories();
+      setNewCategory({ name: "", description: "" });
+      setIsAddingCategory(false);
+      
+      toast({
+        title: "Success",
+        description: "Category added successfully",
+      });
+    } catch (error) {
+      console.error('Failed to create category:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create category",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -40,13 +109,58 @@ const Dashboard = () => {
               <div className="space-y-4">
                 {categories.map((category) => (
                   <div key={category.id} className="flex items-center justify-between p-2 bg-accent/10 rounded-md">
-                    <span>{category.name}</span>
+                    <div className="space-y-1">
+                      <span className="font-medium">{category.name}</span>
+                      {category.description && (
+                        <p className="text-sm text-muted-foreground">{category.description}</p>
+                      )}
+                    </div>
                   </div>
                 ))}
-                <Button className="w-full flex items-center gap-2" variant="outline">
-                  <Plus className="h-4 w-4" />
-                  Add New Category
-                </Button>
+                {isAddingCategory ? (
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Enter category name"
+                      value={newCategory.name}
+                      onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                    <Textarea
+                      placeholder="Enter category description (optional)"
+                      value={newCategory.description || ""}
+                      onChange={(e) => setNewCategory(prev => ({ ...prev, description: e.target.value }))}
+                      className="min-h-[100px]"
+                    />
+                    <div className="flex gap-2">
+                      <Button 
+                        className="flex-1" 
+                        onClick={handleAddCategory}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Saving..." : "Save"}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => {
+                          setIsAddingCategory(false);
+                          setNewCategory({ name: "", description: "" });
+                        }}
+                        disabled={isLoading}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button 
+                    className="w-full flex items-center gap-2" 
+                    variant="outline"
+                    onClick={() => setIsAddingCategory(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add New Category
+                  </Button>
+                )}
               </div>
             </div>
           </SheetContent>
