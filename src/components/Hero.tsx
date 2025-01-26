@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 export const Hero = () => {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-b from-primary to-primary/90 text-white py-24 sm:py-32">
+    <div id="home" className="relative overflow-hidden bg-gradient-to-b from-primary to-primary/90 text-white py-24 sm:py-32">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl">
           <h1 className="text-4xl sm:text-6xl font-bold mb-6">
@@ -19,7 +19,7 @@ export const Hero = () => {
                 Login as Vendor
               </Button>
             </Link>
-            <Link to="/dashboard">
+            <Link to="/login">
               <Button size="lg" variant="outline" className="bg-white/10 hover:bg-white/20">
                 Login as Procurement Officer
               </Button>

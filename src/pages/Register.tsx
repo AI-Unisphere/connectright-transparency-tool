@@ -3,10 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import axios from "axios"; // Import axios for API calls
+import { api } from "@/contexts/AuthContext";
 import {
   Form,
   FormControl,
@@ -15,17 +13,17 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-interface RegistrationForm {
-  companyName: string;
-  email: string;
-  phone: string;
-  address: string;
-  experience: string;
-  services: string;
-  projects: string;
-  terms: boolean;
-}
+const registerSchema = z.object({
+  businessName: z.string().min(1, "Business name is required"),
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+type RegistrationForm = z.infer<typeof registerSchema>;
 
 const Register = () => {
   const navigate = useNavigate();
@@ -33,31 +31,28 @@ const Register = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<RegistrationForm>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
-      companyName: "",
+      businessName: "",
+      name: "",
       email: "",
-      phone: "",
-      address: "",
-      experience: "",
-      services: "",
-      projects: "",
-      terms: false,
+      password: "",
     },
   });
 
   const onSubmit = async (data: RegistrationForm) => {
     setIsSubmitting(true);
     try {
-      const response = await axios.post("http://localhost:3000/auth/register", data);
+      const response = await api.post("/auth/register", data);
       toast({
-        title: "Registration submitted!",
-        description: "Your application is under review. We'll contact you soon.",
+        title: "Registration successful!",
+        description: "You can now log in to your account.",
       });
-      navigate("/login"); // Redirect to login after successful registration
-    } catch (error) {
+      navigate("/login");
+    } catch (error: any) {
       toast({
         title: "Registration failed",
-        description: "Please check your input and try again.",
+        description: error.response?.data?.message || "Please check your input and try again.",
         variant: "destructive",
       });
     } finally {
@@ -85,12 +80,26 @@ const Register = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
-                name="companyName"
+                name="businessName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Name</FormLabel>
+                    <FormLabel>Business Name</FormLabel>
                     <FormControl>
-                      <Input {...field} required />
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Your Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -104,7 +113,7 @@ const Register = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} required />
+                      <Input type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -113,103 +122,24 @@ const Register = () => {
 
               <FormField
                 control={form.control}
-                name="phone"
+                name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="tel" {...field} required />
+                      <Input type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} required />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="experience"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Years of Experience</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" {...field} required />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="services"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Services Provided</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} required />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="projects"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Relevant Projects</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} required />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex items-center space-x-2">
-                <FormField
-                  control={form.control}
-                  name="terms"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          required
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          I agree to the terms and conditions
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
 
               <Button
                 type="submit"
                 className="w-full"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Submitting..." : "Register"}
+                {isSubmitting ? "Registering..." : "Register"}
               </Button>
             </form>
           </Form>
