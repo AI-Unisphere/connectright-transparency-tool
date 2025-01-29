@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,40 +12,44 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const mockRFPs = [
-  {
-    id: 1,
-    title: "Network Infrastructure Upgrade",
-    status: "Active",
-    deadline: "2024-04-15",
-    budget: "$500,000",
-    submissions: 8,
-  },
-  {
-    id: 2,
-    title: "School Connectivity Project",
-    status: "Closed",
-    deadline: "2024-03-30",
-    budget: "$750,000",
-    submissions: 12,
-  },
-  {
-    id: 3,
-    title: "Rural Healthcare Network Extension",
-    status: "Draft",
-    deadline: "2024-05-01",
-    budget: "$300,000",
-    submissions: 0,
-  },
-];
-
 const RFPList = () => {
+  const [rfps, setRfps] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const filteredRFPs = mockRFPs.filter(
+  useEffect(() => {
+    const fetchRFPs = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/rfp/list", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Use the stored token
+          },
+        });
+        setRfps(response.data); // Assuming the response contains the RFP data
+      } catch (error) {
+        toast({
+          title: "Error fetching RFPs",
+          description: "Unable to retrieve RFPs.",
+          variant: "destructive",
+        });
+        navigate("/login"); // Redirect to login if there's an error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRFPs();
+  }, [navigate, toast]);
+
+  const filteredRFPs = rfps.filter(
     (rfp) => statusFilter === "all" || rfp.status.toLowerCase() === statusFilter
   );
+
+  if (loading) {
+    return <div>Loading...</div>; // You can replace this with a loading spinner or skeleton
+  }
 
   return (
     <div className="container mx-auto p-6">

@@ -1,21 +1,26 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import axios from "axios";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const { register, handleSubmit } = useForm();
+
+  const onSubmit = async (data) => {
     try {
-      login(email, password, "vendor");
+      const response = await axios.post("http://localhost:3000/auth/login", data);
+      const { token } = response.data;
+
+      localStorage.setItem("token", token);
+
       toast({
         title: "Login successful",
         description: "Welcome back!",
@@ -24,7 +29,7 @@ const Login = () => {
     } catch (error) {
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again",
+        description: "Please check your credentials and try again.",
         variant: "destructive",
       });
     }
@@ -40,7 +45,7 @@ const Login = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -54,6 +59,7 @@ const Login = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  {...register("email")}
                 />
               </div>
             </div>
@@ -71,6 +77,7 @@ const Login = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  {...register("password")}
                 />
               </div>
             </div>
@@ -87,9 +94,9 @@ const Login = () => {
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 text-gray-500">
                   Don't have an account?{" "}
-                  <a href="#" className="font-medium text-primary hover:text-primary/80">
+                  <Link to="/register" className="font-medium text-primary hover:text-primary/80">
                     Register as Vendor
-                  </a>
+                  </Link>
                 </span>
               </div>
             </div>

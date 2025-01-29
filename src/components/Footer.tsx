@@ -21,11 +21,6 @@ export const Footer = () => {
               </li>
               <li>
                 <a href="#" className="text-gray-300 hover:text-white">
-                  Features
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white">
                   Contact
                 </a>
               </li>

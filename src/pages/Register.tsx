@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import axios from "axios"; // Import axios for API calls
 import {
   Form,
   FormControl,
@@ -46,18 +47,22 @@ const Register = () => {
 
   const onSubmit = async (data: RegistrationForm) => {
     setIsSubmitting(true);
-    console.log("Form submitted with data:", data);
-    
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    toast({
-      title: "Registration submitted!",
-      description: "Your application is under review. We'll contact you soon.",
-    });
-    
-    setIsSubmitting(false);
-    navigate("/login");
+    try {
+      const response = await axios.post("http://localhost:3000/auth/register", data);
+      toast({
+        title: "Registration submitted!",
+        description: "Your application is under review. We'll contact you soon.",
+      });
+      navigate("/login"); // Redirect to login after successful registration
+    } catch (error) {
+      toast({
+        title: "Registration failed",
+        description: "Please check your input and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -68,12 +73,9 @@ const Register = () => {
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Already registered?{" "}
-          <a
-            href="/login"
-            className="font-medium text-primary hover:text-primary/80"
-          >
+          <Link to="/login" className="font-medium text-primary hover:text-primary/80">
             Sign in
-          </a>
+          </Link>
         </p>
       </div>
 
